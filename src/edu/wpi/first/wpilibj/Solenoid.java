@@ -54,7 +54,7 @@ public class Solenoid extends SolenoidBase implements LiveWindowSendable {
      */
     public Solenoid(final int moduleNumber, final int channel) {
         m_channel = channel;
-        initSolenoid((moduleNumber * 7) + channel);
+        initSolenoid((moduleNumber * 8) + channel);
     }
 
     /**
