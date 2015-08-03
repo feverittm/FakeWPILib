@@ -19,49 +19,55 @@ has_sim = ARGV[1] != ".."
 fakelib_dir = Dir.pwd
 
 # compile robot code
+puts "Compile FRC robot code..."
 Dir.chdir(frc_code)
 FileUtils.touch Dir.glob('*.java')
 system('ant.bat jar')
 
 # compile fake wpi lib
+puts "Compile FakeWpilibj..."
 Dir.chdir(fakelib_dir)
 FileUtils.touch Dir.glob('*.java')
 system('ant.bat jar')
 
 # move fake wpi lib jar to sim robot dir
+puts "Copy the jar dist/jar files into the sim directory..."
 FileUtils.cp(fakelib_dir + "/dist/FakeWPILib.jar", sim_code + "/lib/") if has_sim
-FileUtils.cp(ARGV[0]+ "/dist/FRCUserProgram.jar", sim_code + "/lib/") if has_sim
+FileUtils.cp(frc_code + "/dist/FRCUserProgram.jar", sim_code + "/lib/") if has_sim
 
 # compile simulation jig
+puts "... now compile the simulation jig."
 Dir.chdir(sim_code)
 FileUtils.touch Dir.glob('*.java');
 system('ant.bat compile') if has_sim
 
 # prep the fake library build
-Dir.chdir(fakelib_dir)
+Dir.chdir(sim_code)
 
 # remove building tmp dirs
 tmp_dir = Dir.pwd + "/tmp"
 if File.exists?(tmp_dir)
 then
-	puts "Remove temporary directory " + tmp_dir
+	puts "Remove temporary build directory " + tmp_dir
 	FileUtils.remove_dir('tmp',force = true)
 end
+Dir.mkdir(tmp_dir)
+puts "new tmp build directory is " + tmp_dir
 
 # copy robot jar
-jar_file = ARGV[0] + "/dist/FRCUserProgram.jar"
-Dir.mkdir(tmp_dir) unless File.exists?(tmp_dir)
+jar_file = frc_code + "/dist/FRCUserProgram.jar"
 FileUtils.cp jar_file, tmp_dir + "/FRCUserProgram.jar"
 
 # make temp directories
-Dir.chdir('tmp')
+Dir.chdir(tmp_dir)
 Dir.mkdir('classes')
 Dir.chdir('classes')
 
 # uncompress robot jar
+puts 'unpack the FRC user code in the new build directory...'
 `jar -xf ../FRCUserProgram.jar`
-exit
 
+exit
 
 FileUtils.cp "META-INF/MANIFEST.MF", "META-INF/MANIFEST.MF.old"
 
