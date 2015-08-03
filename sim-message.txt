@@ -1,0 +1,59 @@
+[QUOTE=feverittm;1491985]It appears that this build was done on a linux box (the ruby script is VERY linux specific).  I have been trying to build the files (following the build method in the buy script) on my Windows machine using Java 8 JDK and ant loaded from the apache site.  I have issues when I launch the sim with incompatibilities between 64 and 32 bit images and then with incompatible libraries in the wpilibj.  I am doing this outside of eclipse to make sure I can control the build environment.
+
+Has anyone been successful in compiling this under a windows box?  If so could you provide any hints on how you did it?
+
+Thanks[/QUOTE]
+
+I ran it under windows doing the steps manually. Here's how:
+
+ Make sure you have the 32 bit jvm and jdk on your machine.  Also, make sure your PATH variable points to the a 32 bit java 8 jdk/jre.  To check run "java -d64 -version" and you should see an error that 64 bit is unsupported.  Also run "javac -d64 -version" and you should get the same error message. 
+
+Download the three repositories (FakeWPILib, FRC-2015, Sim-FRC-2015) using the download zip option from the github page.  Unzip them all to the same folder.
+
+In FakeWPILib/src/edu/..../Solenoid.java, edit the constructor so it looks like the code below
+[CODE]public Solenoid(final int moduleNumber, final int channel) {
+        m_channel = channel;
+        initSolenoid((moduleNumber * 7) + channel);
+    }[/CODE]
+
+In FRC-2015/src/com/team254/util/lib/MultiLooper.java, edit the constructor so it looks like the code below
+
+[CODE]public MultiLooper(String name, double period, boolean use_notifier) {
+        if (use_notifier) {
+            looper = new Looper(name, this, period);
+        } else {
+            looper = new Looper(name, this, period);
+        }
+    }[/CODE]
+
+Open a command prompt window, and go to the FRC-2015 directory.
+Run 'ant jar'
+Make sure you see BUILD SUCCEEDED
+
+Go to the FakeWPILib directory, and run ant jar
+Make sure you see BUILD SUCCEEDED
+
+Copy FakeWPILib/dist/FakeWPILib.jar to Sim-FRC-2015/lib/
+Copy FRC-2015/dist/FRCUserProgram.jar to Sim-FRC-2015/lib/
+
+Go to the Sim-FRC-2015
+run ant compile
+
+Delete Sim-FRC-2015/tmp if it exists
+Copy FRC-2015/dist/FRCUserProgram.jar to Sim-FRC-2015/tmp (create tmp folder)
+
+Create folder classes in tmp
+Open command prompt window in classes, run 'jar -xf ../FRCUserProgram.jar
+
+copy contents of FakeWPILib/bin/ to Sim-FRC-2015/tmp/classes, don't use command prompt for this, and be sure to merge folders and overwrite without rename when there are conflicts
+
+copy contents of Sim-FRC-2015/bin/ to Sim-FRC-2015/tmp/classes, same way as before
+
+open a command prompt window in Sim-FRC-2015/tmp
+run 'jar -cmvf classes/META-INF/MANIFEST.MF to_sim.jar -C classes .'
+
+to run simulation, run 'java -jar to_sim.jar'
+
+To see the robot graphs, go to localhost:5800 in your browser.
+
+If you get an error, post it here, and I can probably help.
